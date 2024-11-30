@@ -1,0 +1,133 @@
+/* Stili per la scacchiera e i controlli */
+.scacchiera-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+#scacchiera {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Controlli della scacchiera */
+.scacchiera-controlli {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.control-button {
+    padding: 8px 12px;
+    border: none;
+    background: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.control-button:hover {
+    background: #e0e0e0;
+}
+
+.control-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.control-button .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+}
+
+/* Visualizzatore PGN */
+.pgn-viewer {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    font-family: monospace;
+    line-height: 1.5;
+}
+
+.pgn-moves {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.move-number {
+    color: #666;
+    user-select: none;
+    cursor: default;
+}
+
+.move {
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.move:hover {
+    background: #e0e0e0;
+}
+
+.move.current {
+    background: #4CAF50;
+    color: white;
+}
+
+/* Controllo velocità */
+.velocita-controllo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 15px;
+}
+
+.velocita-controllo input[type="range"] {
+    width: 100px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .scacchiera-controlli {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .velocita-controllo {
+        margin: 10px 0;
+    }
+}
+
+/* Stili pezzi degli scacchi hover */
+.square-55d63 {
+    transition: background-color 0.2s;
+}
+
+.square-55d63:hover {
+    background-color: rgba(255, 255, 0, 0.2);
+}
+
+/* Evidenziazione ultima mossa */
+.highlight-square {
+    box-shadow: inset 0 0 3px 3px yellow;
+}
+
+/* Animazioni */
+@keyframes moveHighlight {
+    from { background-color: rgba(255, 255, 0, 0.4); }
+    to { background-color: transparent; }
+}
+
+.move-highlight {
+    animation: moveHighlight 1s ease-out;
+}
