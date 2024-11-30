@@ -1,0 +1,28 @@
+# Ignora file di sistema
+.DS_Store
+Thumbs.db
+
+# Ignora node_modules
+node_modules/
+
+# Ignora file di configurazione locale
+config.local.js
+.env
+
+# Ignora file di build
+dist/
+build/
+
+# Ignora file temporanei
+*.tmp
+*.log
+
+# Puoi usare wildcard
+*.pdf
+*.zip
+
+# Ignora una cartella specifica
+costruzione/
+
+# Ma traccia un file specifico in una cartella ignorata
+#!cartella_da_ignorare/file_importante.txt
