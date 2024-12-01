@@ -10,11 +10,13 @@ $stats = get_scacchitrack_statistics();
 
 <div class="scacchitrack-stats">
     <!-- Statistiche Generali -->
+    <div class="scacchitrack-stats">
+    <!-- Statistiche Generali -->
     <div class="stats-section">
         <h2><?php _e('Statistiche Generali', 'scacchitrack'); ?></h2>
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value"><?php echo number_format_i18n($total_games); ?></div>
+                <div class="stat-value"><?php echo number_format_i18n($stats['total_games']); ?></div>
                 <div class="stat-label"><?php _e('Partite Totali', 'scacchitrack'); ?></div>
             </div>
             
@@ -29,11 +31,10 @@ $stats = get_scacchitrack_statistics();
             </div>
             
             <div class="stat-card">
-                <div class="stat-value"><?php echo number_format_i18n($stats['avg_moves']); ?></div>
-                <div class="stat-label"><?php _e('Media Mosse per Partita', 'scacchitrack'); ?></div>
+                <div class="stat-value"><?php echo number_format_i18n($stats['white_win_percentage'], 1); ?>%</div>
+                <div class="stat-label"><?php _e('Percentuale Vittorie Bianco', 'scacchitrack'); ?></div>
             </div>
         </div>
-    </div>
 
     <!-- Statistiche Risultati -->
     <div class="stats-section">

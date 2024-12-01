@@ -9,6 +9,7 @@ $giocatore_bianco = get_post_meta($post_id, '_giocatore_bianco', true);
 $giocatore_nero = get_post_meta($post_id, '_giocatore_nero', true);
 $data_partita = get_post_meta($post_id, '_data_partita', true);
 $nome_torneo = get_post_meta($post_id, '_nome_torneo', true);
+$round = get_post_meta($post_id, '_round', true); // Aggiunto questo
 $pgn = get_post_meta($post_id, '_pgn', true);
 $risultato = get_post_meta($post_id, '_risultato', true);
 ?>

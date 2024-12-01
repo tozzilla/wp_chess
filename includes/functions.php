@@ -58,6 +58,9 @@ function get_scacchitrack_statistics() {
     
     $stats = array();
     
+    // Totale partite
+    $stats['total_games'] = wp_count_posts('scacchipartita')->publish;
+    
     // Totale tornei
     $stats['total_tournaments'] = count(get_unique_tournament_names());
     
@@ -107,9 +110,16 @@ function get_scacchitrack_statistics() {
         }
     }
     
-    $stats['white_win_percentage'] = $total_games ? ($white_wins / $total_games) * 100 : 0;
-    $stats['black_win_percentage'] = $total_games ? ($black_wins / $total_games) * 100 : 0;
-    $stats['draw_percentage'] = $total_games ? ($draws / $total_games) * 100 : 0;
+    // Calcola le percentuali solo se ci sono partite
+    if ($total_games > 0) {
+        $stats['white_win_percentage'] = ($white_wins / $total_games) * 100;
+        $stats['black_win_percentage'] = ($black_wins / $total_games) * 100;
+        $stats['draw_percentage'] = ($draws / $total_games) * 100;
+    } else {
+        $stats['white_win_percentage'] = 0;
+        $stats['black_win_percentage'] = 0;
+        $stats['draw_percentage'] = 0;
+    }
     
     // Timeline data
     $timeline = $wpdb->get_results(
@@ -131,9 +141,6 @@ function get_scacchitrack_statistics() {
     
     // Tournament stats
     $stats['tournament_stats'] = get_tournament_statistics();
-    
-    // Opening stats
-    $stats['openings'] = get_opening_statistics();
     
     return $stats;
 }

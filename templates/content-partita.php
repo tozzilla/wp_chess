@@ -15,9 +15,6 @@ $risultato = get_post_meta($post_id, '_risultato', true);
 <div class="scacchitrack-single-partita">
     <!-- Intestazione della partita -->
     <header class="partita-header">
-        <h1 class="partita-title">
-            <?php the_title(); ?>
-        </h1>
         
         <div class="partita-meta">
             <div class="giocatori">

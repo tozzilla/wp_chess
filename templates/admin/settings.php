@@ -32,6 +32,35 @@ $settings = get_option('scacchitrack_settings', array(
     'notazione_algebrica' => true,
     'commenti_abilitati' => true
 ));
+
+// Gestione del salvataggio delle impostazioni
+if (isset($_POST['scacchitrack_save_settings'])) {
+    check_admin_referer('scacchitrack_settings');
+    
+    // Salva le impostazioni esistenti
+    $settings = array(
+        'partite_per_pagina' => absint($_POST['partite_per_pagina']),
+        'tema_scacchiera' => sanitize_text_field($_POST['tema_scacchiera']),
+        'animazioni' => isset($_POST['animazioni']),
+        'notazione_algebrica' => isset($_POST['notazione_algebrica']),
+        'commenti_abilitati' => isset($_POST['commenti_abilitati'])
+    );
+    update_option('scacchitrack_settings', $settings);
+    
+    // Salva le nuove impostazioni di protezione
+    update_option('scacchitrack_password_protection', isset($_POST['password_protection']));
+    
+    if (isset($_POST['access_password']) && !empty($_POST['access_password'])) {
+        update_option('scacchitrack_access_password', wp_hash_password($_POST['access_password']));
+    }
+    
+    add_settings_error(
+        'scacchitrack_messages',
+        'scacchitrack_message',
+        __('Impostazioni salvate con successo.', 'scacchitrack'),
+        'updated'
+    );
+}
 ?>
 
 <div class="scacchitrack-settings">
@@ -109,6 +138,40 @@ $settings = get_option('scacchitrack_settings', array(
                     </fieldset>
                 </td>
             </tr>
+
+            <tr>
+        <th scope="row"><?php _e('Protezione Contenuti', 'scacchitrack'); ?></th>
+        <td>
+            <fieldset>
+                <label for="password_protection">
+                    <input type="checkbox" 
+                           id="password_protection" 
+                           name="password_protection" 
+                           value="1" 
+                           <?php checked(get_option('scacchitrack_password_protection')); ?>>
+                    <?php _e('Proteggi la lista delle partite con password', 'scacchitrack'); ?>
+                </label>
+            </fieldset>
+        </td>
+    </tr>
+
+    <tr class="password-settings" style="display: <?php echo get_option('scacchitrack_password_protection') ? 'table-row' : 'none'; ?>;">
+        <th scope="row">
+            <label for="access_password">
+                <?php _e('Password di Accesso', 'scacchitrack'); ?>
+            </label>
+        </th>
+        <td>
+            <input type="password" 
+                   id="access_password" 
+                   name="access_password" 
+                   value="<?php echo esc_attr(get_option('scacchitrack_access_password')); ?>" 
+                   class="regular-text">
+            <p class="description">
+                <?php _e('Imposta la password per accedere alla lista delle partite.', 'scacchitrack'); ?>
+            </p>
+        </td>
+    </tr>
         </table>
 
         <p class="submit">
@@ -119,3 +182,16 @@ $settings = get_option('scacchitrack_settings', array(
         </p>
     </form>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    // Mostra/nascondi il campo password in base allo stato del checkbox
+    $('#password_protection').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('.password-settings').show();
+        } else {
+            $('.password-settings').hide();
+        }
+    });
+});
+</script>

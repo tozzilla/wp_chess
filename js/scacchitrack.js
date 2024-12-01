@@ -97,12 +97,30 @@
 
         bindEvents() {
             // Bottoni di controllo
-            this.elements.startBtn.on('click', () => this.goToStart());
-            this.elements.prevBtn.on('click', () => this.prevMove());
-            this.elements.playBtn.on('click', () => this.togglePlay());
-            this.elements.nextBtn.on('click', () => this.nextMove());
-            this.elements.endBtn.on('click', () => this.goToEnd());
-            this.elements.flipBtn.on('click', () => this.flipBoard());
+    this.elements.startBtn.on('click', (e) => {
+        e.preventDefault();
+        this.goToStart();
+    });
+    this.elements.prevBtn.on('click', (e) => {
+        e.preventDefault();
+        this.prevMove();
+    });
+    this.elements.playBtn.on('click', (e) => {
+        e.preventDefault();
+        this.togglePlay();
+    });
+    this.elements.nextBtn.on('click', (e) => {
+        e.preventDefault();
+        this.nextMove();
+    });
+    this.elements.endBtn.on('click', (e) => {
+        e.preventDefault();
+        this.goToEnd();
+    });
+    this.elements.flipBtn.on('click', (e) => {
+        e.preventDefault();
+        this.flipBoard();
+    });
 
             // Controllo velocità
             this.elements.velocitaRange.on('input', (e) => {
@@ -173,16 +191,24 @@
                 container.append(moveSpan);
                 container.append(' ');
             }
-
+        
             this.elements.pgnViewer.html(container);
-
-            // Scroll alla mossa corrente
+        
+            // Modifichiamo questa parte per non scrollare alla posizione se stiamo usando i controlli
             const currentMove = this.elements.pgnViewer.find('.current');
             if (currentMove.length) {
-                currentMove[0].scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                // Calcoliamo se la mossa è fuori dalla vista
+                const viewer = this.elements.pgnViewer[0];
+                const move = currentMove[0];
+                const viewerRect = viewer.getBoundingClientRect();
+                const moveRect = move.getBoundingClientRect();
+        
+                if (moveRect.top < viewerRect.top || moveRect.bottom > viewerRect.bottom) {
+                    move.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }
             }
         }
 
@@ -248,8 +274,12 @@
         }
 
         startPlay() {
+            // Se siamo alla fine, torniamo all'inizio
             if (this.pgnIndex >= this.moves.length) {
                 this.goToStart();
+                // Importante: ritorniamo qui per dare tempo alla UI di aggiornarsi
+                setTimeout(() => this.startPlay(), 100);
+                return;
             }
             
             this.isPlaying = true;
