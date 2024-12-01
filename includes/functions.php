@@ -23,6 +23,32 @@ function get_unique_tournament_names() {
 }
 
 /**
+ * Genera il titolo automatico per una partita
+ * 
+ * @param string $torneo Nome del torneo
+ * @param string $round Numero del turno
+ * @param string $bianco Nome giocatore bianco
+ * @param string $nero Nome giocatore nero
+ * @return string Titolo generato
+ */
+function scacchitrack_generate_game_title($torneo, $round, $bianco, $nero) {
+    $torneo = trim($torneo);
+    $round = trim($round);
+    $bianco = trim($bianco);
+    $nero = trim($nero);
+    
+    if (empty($torneo)) {
+        $torneo = __('Partita', 'scacchitrack');
+    }
+    
+    if (empty($round)) {
+        return sprintf('%s: %s-%s', $torneo, $bianco, $nero);
+    }
+    
+    return sprintf('%s R.%s: %s-%s', $torneo, $round, $bianco, $nero);
+}
+
+/**
  * Recupera le statistiche generali
  *
  * @return array Array di statistiche

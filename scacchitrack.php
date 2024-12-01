@@ -3,7 +3,7 @@
 Plugin Name: ScacchiTrack
 Plugin URI: https://connecta.app
 Description: Plugin per caricare, gestire e visualizzare partite di scacchi con scacchiera interattiva.
-Version: 0.9d
+Version: 0.9e
 Author: Andrea Tozzi per Empoli Scacchi ASD
 Author URI: https://connecta.app
 License: GPL2

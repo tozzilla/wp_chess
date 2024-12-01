@@ -17,6 +17,7 @@ function scacchitrack_set_custom_columns($columns) {
     $new_columns['giocatore_bianco'] = __('Giocatore Bianco', 'scacchitrack');
     $new_columns['giocatore_nero'] = __('Giocatore Nero', 'scacchitrack');
     $new_columns['nome_torneo'] = __('Torneo', 'scacchitrack');
+    $new_columns['round'] = __('Turno', 'scacchitrack'); // Nuova colonna
     $new_columns['data_partita'] = __('Data', 'scacchitrack');
     $new_columns['risultato'] = __('Risultato', 'scacchitrack');
     
@@ -30,6 +31,11 @@ function scacchitrack_custom_column_content($column, $post_id) {
         case 'giocatore_bianco':
             echo esc_html(get_post_meta($post_id, '_giocatore_bianco', true));
             break;
+
+        case 'round':
+                $round = get_post_meta($post_id, '_round', true);
+                echo $round ? esc_html($round) : '-';
+                break;
             
         case 'giocatore_nero':
             echo esc_html(get_post_meta($post_id, '_giocatore_nero', true));
@@ -61,6 +67,7 @@ function scacchitrack_sortable_columns($columns) {
     $columns['giocatore_bianco'] = 'giocatore_bianco';
     $columns['giocatore_nero'] = 'giocatore_nero';
     $columns['nome_torneo'] = 'nome_torneo';
+    $columns['round'] = 'round'; // Aggiunto ordinamento per round
     $columns['data_partita'] = 'data_partita';
     $columns['risultato'] = 'risultato';
     
@@ -98,9 +105,10 @@ function scacchitrack_admin_columns_css() {
             .column-giocatore_bianco,
             .column-giocatore_nero,
             .column-nome_torneo,
+            .column-round,
             .column-data_partita,
             .column-risultato {
-                width: 15%;
+                width: 12%;
             }
             
             .risultato-1-0,

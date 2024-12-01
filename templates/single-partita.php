@@ -29,6 +29,13 @@ $risultato = get_post_meta($post_id, '_risultato', true);
                 <span class="meta-value"><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($data_partita))); ?></span>
             </div>
             <?php endif; ?>
+
+            <?php if ($round) : ?><!-- Nuovo campo -->
+            <div class="meta-item">
+                <span class="meta-label"><?php _e('Turno:', 'scacchitrack'); ?></span>
+                <span class="meta-value"><?php echo esc_html($round); ?></span>
+            </div>
+            <?php endif; ?>
             
             <?php if ($nome_torneo) : ?>
             <div class="meta-item">

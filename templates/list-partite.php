@@ -54,15 +54,16 @@ if (!defined('ABSPATH')) {
 
     <!-- Risultati -->
     <div id="scacchitrack-results">
-        <table class="wp-list-table widefat fixed striped">
+    <table class="scacchitrack-table">
             <thead>
                 <tr>
-                    <th><?php _e('Data', 'scacchitrack'); ?></th>
-                    <th><?php _e('Bianco', 'scacchitrack'); ?></th>
-                    <th><?php _e('Nero', 'scacchitrack'); ?></th>
-                    <th><?php _e('Risultato', 'scacchitrack'); ?></th>
-                    <th><?php _e('Torneo', 'scacchitrack'); ?></th>
-                    <th><?php _e('Azioni', 'scacchitrack'); ?></th>
+                    <th class="column-data"><?php _e('Data', 'scacchitrack'); ?></th>
+                    <th class="column-bianco"><?php _e('Bianco', 'scacchitrack'); ?></th>
+                    <th class="column-nero"><?php _e('Nero', 'scacchitrack'); ?></th>
+                    <th class="column-torneo"><?php _e('Torneo', 'scacchitrack'); ?></th>
+                    <th class="column-turno"><?php _e('Turno', 'scacchitrack'); ?></th>
+                    <th class="column-risultato"><?php _e('Risultato', 'scacchitrack'); ?></th>
+                    <th class="column-azioni"><?php _e('Azioni', 'scacchitrack'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -149,5 +150,72 @@ if (!defined('ABSPATH')) {
     background: #2271b1;
     color: #fff;
     border-color: #2271b1;
+}
+
+/* Stili per la tabella */
+.scacchitrack-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+}
+
+.scacchitrack-table th,
+.scacchitrack-table td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.scacchitrack-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+}
+
+/* Larghezze colonne */
+.scacchitrack-table .column-data {
+    width: 15%;
+}
+
+.scacchitrack-table .column-bianco,
+.scacchitrack-table .column-nero {
+    width: 18%;
+}
+
+.scacchitrack-table .column-torneo {
+    width: 20%;
+}
+
+.scacchitrack-table .column-turno {
+    width: 8%;
+    text-align: center;
+}
+
+.scacchitrack-table .column-risultato {
+    width: 10%;
+    text-align: center;
+}
+
+.scacchitrack-table .column-azioni {
+    width: 11%;
+    text-align: center;
+}
+
+/* Allineamenti delle celle */
+.scacchitrack-table td:nth-child(5),
+.scacchitrack-table td:nth-child(6) {
+    text-align: center;
+}
+
+.scacchitrack-table td:last-child {
+    text-align: center;
+}
+
+/* Stile responsive */
+@media screen and (max-width: 768px) {
+    .scacchitrack-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 }
 </style>

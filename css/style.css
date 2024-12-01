@@ -47,6 +47,55 @@
     margin-bottom: 20px;
 }
 
+/* Aggiunta alle regole esistenti */
+.scacchitrack-table th,
+.scacchitrack-table td {
+    padding: 8px;
+    text-align: left;
+}
+
+
+.scacchitrack-table th:nth-child(2),  /* Bianco */
+.scacchitrack-table td:nth-child(2),
+.scacchitrack-table th:nth-child(3),  /* Nero */
+.scacchitrack-table td:nth-child(3) {
+    width: 18%;
+}
+
+.scacchitrack-table th:nth-child(4),  /* Torneo */
+.scacchitrack-table td:nth-child(4) {
+    width: 20%;
+}
+
+.scacchitrack-table th:nth-child(5),  /* Turno */
+.scacchitrack-table td:nth-child(5) {
+    width: 8%;
+    text-align: center;
+}
+
+.scacchitrack-table th:nth-child(6),  /* Risultato */
+.scacchitrack-table td:nth-child(6) {
+    width: 12%;
+    text-align: center;
+}
+
+.scacchitrack-table th:nth-child(7),  /* Azioni */
+.scacchitrack-table td:nth-child(7) {
+    width: 12%;
+    text-align: center;
+}
+
+/* Stile per i meta nella vista singola */
+.partita-meta .meta-item {
+    margin-right: 20px;
+    display: inline-block;
+}
+
+.partita-meta .meta-label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
 .scacchitrack-results th,
 .scacchitrack-results td {
     padding: 10px;

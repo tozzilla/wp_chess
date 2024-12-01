@@ -25,11 +25,24 @@ function scacchitrack_game_details_callback($post) {
     $giocatore_nero = get_post_meta($post->ID, '_giocatore_nero', true);
     $data_partita = get_post_meta($post->ID, '_data_partita', true);
     $nome_torneo = get_post_meta($post->ID, '_nome_torneo', true);
+    $round = get_post_meta($post->ID, '_round', true);
     $pgn = get_post_meta($post->ID, '_pgn', true);
     $risultato = get_post_meta($post->ID, '_risultato', true);
     ?>
     
     <div class="scacchitrack-metabox-container">
+        <p>
+            <label for="nome_torneo"><?php _e('Nome Torneo:', 'scacchitrack'); ?></label>
+            <input type="text" id="nome_torneo" name="nome_torneo" 
+                   value="<?php echo esc_attr($nome_torneo); ?>" class="widefat">
+        </p>
+        
+        <p>
+            <label for="round"><?php _e('Turno:', 'scacchitrack'); ?></label>
+            <input type="text" id="round" name="round" 
+                   value="<?php echo esc_attr($round); ?>" class="widefat">
+        </p>
+        
         <p>
             <label for="giocatore_bianco"><?php _e('Giocatore Bianco:', 'scacchitrack'); ?></label>
             <input type="text" id="giocatore_bianco" name="giocatore_bianco" 
@@ -46,12 +59,6 @@ function scacchitrack_game_details_callback($post) {
             <label for="data_partita"><?php _e('Data Partita:', 'scacchitrack'); ?></label>
             <input type="date" id="data_partita" name="data_partita" 
                    value="<?php echo esc_attr($data_partita); ?>" class="widefat">
-        </p>
-        
-        <p>
-            <label for="nome_torneo"><?php _e('Nome Torneo:', 'scacchitrack'); ?></label>
-            <input type="text" id="nome_torneo" name="nome_torneo" 
-                   value="<?php echo esc_attr($nome_torneo); ?>" class="widefat">
         </p>
         
         <p>
@@ -93,6 +100,14 @@ function scacchitrack_game_details_callback($post) {
 
 // Salvataggio dei dati del metabox
 function scacchitrack_save_game_details($post_id) {
+    global $wpdb; // Aggiungiamo questa riga
+    static $is_saving = false; // Previene la ricorsione
+
+    // Se stiamo già salvando, usciamo
+    if ($is_saving) {
+        return;
+    }
+
     // Verifica del nonce
     if (!isset($_POST['scacchitrack_game_details_nonce']) || 
         !wp_verify_nonce($_POST['scacchitrack_game_details_nonce'], 'scacchitrack_save_game_details')) {
@@ -109,12 +124,15 @@ function scacchitrack_save_game_details($post_id) {
         return;
     }
 
+    $is_saving = true; // Inizia il processo di salvataggio
+
     // Array dei campi da salvare
     $fields = array(
         'giocatore_bianco' => 'sanitize_text_field',
         'giocatore_nero' => 'sanitize_text_field',
         'data_partita' => 'sanitize_text_field',
         'nome_torneo' => 'sanitize_text_field',
+        'round' => 'sanitize_text_field',
         'risultato' => 'sanitize_text_field',
         'pgn' => 'wp_kses_post'
     );
@@ -126,6 +144,23 @@ function scacchitrack_save_game_details($post_id) {
             update_post_meta($post_id, '_' . $field, $value);
         }
     }
+
+    // Genera e aggiorna il titolo
+    $title = scacchitrack_generate_game_title(
+        $_POST['nome_torneo'] ?? '',
+        $_POST['round'] ?? '',
+        $_POST['giocatore_bianco'] ?? '',
+        $_POST['giocatore_nero'] ?? ''
+    );
+
+    // Aggiorna il titolo senza triggerare save_post
+    $wpdb->update(
+        $wpdb->posts, 
+        array('post_title' => $title), 
+        array('ID' => $post_id)
+    );
+
+    $is_saving = false; // Fine del processo di salvataggio
 }
 add_action('save_post_scacchipartita', 'scacchitrack_save_game_details');
 

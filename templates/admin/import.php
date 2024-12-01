@@ -4,6 +4,58 @@ if (!defined('ABSPATH')) {
 }
 
 // Gestione dell'importazione
+if (isset($_POST['scacchitrack_import']) && isset($_FILES['pgn_file'])) {
+    check_admin_referer('scacchitrack_import');
+    
+    $file = $_FILES['pgn_file'];
+    
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $error_message = __('Errore nel caricamento del file.', 'scacchitrack');
+    } else {
+        $importer = new ScacchiTrack_Import_Handler();
+        $result = $importer->handle_pgn_import($file['tmp_name']);
+        
+        if (is_wp_error($result)) {
+            $error_message = $result->get_error_message();
+        } else {
+            $success_message = sprintf(
+                __('Importate con successo %d partite su %d.', 'scacchitrack'),
+                $result['imported'],
+                $result['total']
+            );
+            if (!empty($result['errors'])) {
+                $error_message = implode('<br>', $result['errors']);
+            }
+        }
+    }
+}
+
+// Gestione dell'esportazione
+if (isset($_POST['scacchitrack_export'])) {
+    check_admin_referer('scacchitrack_export');
+    
+    $from_date = isset($_POST['export_from']) ? sanitize_text_field($_POST['export_from']) : '';
+    $to_date = isset($_POST['export_to']) ? sanitize_text_field($_POST['export_to']) : '';
+    $tournament = isset($_POST['export_tournament']) ? sanitize_text_field($_POST['export_tournament']) : '';
+    
+    $exporter = new ScacchiTrack_Export_Handler();
+    $pgn_content = $exporter->generate_pgn_export($from_date, $to_date, $tournament);
+    
+    if (!empty($pgn_content)) {
+        header('Content-Type: application/x-chess-pgn');
+        header('Content-Disposition: attachment; filename="scacchitrack-export-' . date('Y-m-d') . '.pgn"');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        
+        echo $pgn_content;
+        exit;
+    } else {
+        $error_message = __('Nessuna partita trovata con i criteri specificati.', 'scacchitrack');
+    }
+}
+
+/**
+ * Classe per la gestione dell'importazione
+ */
 class ScacchiTrack_Import_Handler {
     
     public function handle_pgn_import($file_path) {
@@ -11,15 +63,12 @@ class ScacchiTrack_Import_Handler {
             return new WP_Error('file_missing', __('File PGN non trovato', 'scacchitrack'));
         }
 
-        // Leggi il contenuto del file
         $content = file_get_contents($file_path);
         
-        // Verifica che sia codificato correttamente
         if (!mb_check_encoding($content, 'UTF-8')) {
             $content = mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content));
         }
 
-        // Divide le partite multiple
         $games = $this->split_pgn_games($content);
         
         $imported = 0;
@@ -45,13 +94,11 @@ class ScacchiTrack_Import_Handler {
         $games = array();
         $current_game = '';
         
-        // Divide le righe del file
         $lines = explode("\n", $content);
         
         foreach ($lines as $line) {
             $line = trim($line);
             
-            // Una nuova partita inizia con i tag del PGN
             if (preg_match('/^\[Event/', $line) && !empty($current_game)) {
                 $games[] = trim($current_game);
                 $current_game = '';
@@ -60,7 +107,6 @@ class ScacchiTrack_Import_Handler {
             $current_game .= $line . "\n";
         }
         
-        // Aggiungi l'ultima partita
         if (!empty($current_game)) {
             $games[] = trim($current_game);
         }
@@ -69,20 +115,24 @@ class ScacchiTrack_Import_Handler {
     }
 
     private function import_single_game($pgn) {
-        // Estrai i tag PGN
         $tags = $this->extract_pgn_tags($pgn);
         
-        // Verifica se la partita esiste già
         if ($this->game_exists($tags)) {
             return new WP_Error('duplicate', __('Partita già esistente', 'scacchitrack'));
         }
 
-        // Crea il post della partita
+        $title = scacchitrack_generate_game_title(
+            $tags['Event'] ?? '',
+            $tags['Round'] ?? '',
+            $tags['White'] ?? '',
+            $tags['Black'] ?? ''
+        );
+
         $post_data = array(
-            'post_title'   => $this->generate_game_title($tags),
+            'post_title'   => $title,
             'post_type'    => 'scacchipartita',
             'post_status'  => 'publish',
-            'post_content' => '',
+            'post_content' => ''
         );
 
         $post_id = wp_insert_post($post_data);
@@ -91,30 +141,31 @@ class ScacchiTrack_Import_Handler {
             return $post_id;
         }
 
-        // Salva i metadati
-        update_post_meta($post_id, '_giocatore_bianco', $tags['White'] ?? '');
-        update_post_meta($post_id, '_giocatore_nero', $tags['Black'] ?? '');
-        update_post_meta($post_id, '_data_partita', $this->format_pgn_date($tags['Date'] ?? ''));
-        update_post_meta($post_id, '_nome_torneo', $tags['Event'] ?? '');
-        update_post_meta($post_id, '_risultato', $tags['Result'] ?? '');
-        update_post_meta($post_id, '_pgn', $pgn);
+        $meta_fields = array(
+            '_giocatore_bianco' => 'White',
+            '_giocatore_nero' => 'Black',
+            '_data_partita' => 'Date',
+            '_nome_torneo' => 'Event',
+            '_round' => 'Round',
+            '_risultato' => 'Result',
+            '_pgn' => $pgn
+        );
+
+        foreach ($meta_fields as $meta_key => $pgn_tag) {
+            if ($meta_key === '_data_partita' && isset($tags[$pgn_tag])) {
+                $value = $this->format_pgn_date($tags[$pgn_tag]);
+            } elseif ($meta_key === '_pgn') {
+                $value = $pgn;
+            } else {
+                $value = $tags[$pgn_tag] ?? '';
+            }
+            update_post_meta($post_id, $meta_key, $value);
+        }
 
         return $post_id;
     }
 
-    private function extract_pgn_tags($pgn) {
-        $tags = array();
-        preg_match_all('/\[(.*?)\s"(.*?)"\]/', $pgn, $matches);
-        
-        for ($i = 0; $i < count($matches[1]); $i++) {
-            $tags[trim($matches[1][$i])] = trim($matches[2][$i]);
-        }
-        
-        return $tags;
-    }
-
     private function game_exists($tags) {
-        // Verifica se esiste una partita con gli stessi dettagli
         $args = array(
             'post_type' => 'scacchipartita',
             'meta_query' => array(
@@ -134,6 +185,10 @@ class ScacchiTrack_Import_Handler {
                 array(
                     'key' => '_nome_torneo',
                     'value' => $tags['Event'] ?? '',
+                ),
+                array(
+                    'key' => '_round',
+                    'value' => $tags['Round'] ?? '',
                 )
             )
         );
@@ -142,81 +197,97 @@ class ScacchiTrack_Import_Handler {
         return $query->have_posts();
     }
 
-    private function generate_game_title($tags) {
-        $white = $tags['White'] ?? __('Bianco', 'scacchitrack');
-        $black = $tags['Black'] ?? __('Nero', 'scacchitrack');
-        $event = $tags['Event'] ?? '';
-        $date = $this->format_pgn_date($tags['Date'] ?? '', true);
+    private function extract_pgn_tags($pgn) {
+        $tags = array();
+        preg_match_all('/\[(.*?)\s"(.*?)"\]/', $pgn, $matches);
         
-        $title = sprintf('%s vs %s', $white, $black);
-        if (!empty($event)) {
-            $title .= sprintf(' - %s', $event);
-        }
-        if (!empty($date)) {
-            $title .= sprintf(' (%s)', $date);
+        for ($i = 0; $i < count($matches[1]); $i++) {
+            $tags[trim($matches[1][$i])] = trim($matches[2][$i]);
         }
         
-        return $title;
+        return $tags;
     }
 
-    private function format_pgn_date($date, $display = false) {
+    private function format_pgn_date($date) {
         if (empty($date) || $date == '????.??.??') {
             return '';
         }
-        
-        // Converte il formato PGN (YYYY.MM.DD) in formato MySQL (YYYY-MM-DD)
-        $date = str_replace('.', '-', $date);
-        
-        if ($display) {
-            return date_i18n(get_option('date_format'), strtotime($date));
-        }
-        
-        return $date;
+        return str_replace('.', '-', $date);
     }
 }
 
 /**
- * Funzione helper per gestire l'importazione
+ * Classe per la gestione dell'esportazione
  */
-function handle_pgn_import($file_path) {
-    $importer = new ScacchiTrack_Import_Handler();
-    return $importer->handle_pgn_import($file_path);
-}
+class ScacchiTrack_Export_Handler {
+    
+    public function generate_pgn_export($from_date = '', $to_date = '', $tournament = '') {
+        $args = array(
+            'post_type' => 'scacchipartita',
+            'posts_per_page' => -1,
+            'meta_query' => array()
+        );
 
-// Gestione dell'esportazione
-if (isset($_POST['scacchitrack_export'])) {
-    check_admin_referer('scacchitrack_export');
-    
-    $from_date = isset($_POST['export_from']) ? sanitize_text_field($_POST['export_from']) : '';
-    $to_date = isset($_POST['export_to']) ? sanitize_text_field($_POST['export_to']) : '';
-    $tournament = isset($_POST['export_tournament']) ? sanitize_text_field($_POST['export_tournament']) : '';
-    
-    // Genera il file PGN
-    $pgn_content = generate_pgn_export($from_date, $to_date, $tournament);
-    
-    // Forza il download
-    header('Content-Type: application/x-chess-pgn');
-    header('Content-Disposition: attachment; filename="scacchitrack-export-' . date('Y-m-d') . '.pgn"');
-    header('Cache-Control: no-cache, no-store, must-revalidate');
-    
-    echo $pgn_content;
-    exit;
+        if (!empty($tournament)) {
+            $args['meta_query'][] = array(
+                'key' => '_nome_torneo',
+                'value' => $tournament
+            );
+        }
+
+        if (!empty($from_date) || !empty($to_date)) {
+            $date_query = array('key' => '_data_partita');
+            
+            if (!empty($from_date)) {
+                $date_query['value'] = $from_date;
+                $date_query['compare'] = '>=';
+                $date_query['type'] = 'DATE';
+            }
+            
+            if (!empty($to_date)) {
+                if (empty($from_date)) {
+                    $date_query['value'] = $to_date;
+                    $date_query['compare'] = '<=';
+                } else {
+                    $date_query['value'] = array($from_date, $to_date);
+                    $date_query['compare'] = 'BETWEEN';
+                }
+                $date_query['type'] = 'DATE';
+            }
+            
+            $args['meta_query'][] = $date_query;
+        }
+
+        $query = new WP_Query($args);
+        $pgn_content = '';
+
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $pgn_content .= get_post_meta(get_the_ID(), '_pgn', true) . "\n\n";
+            }
+        }
+
+        wp_reset_postdata();
+        return $pgn_content;
+    }
 }
 
 // Recupera la lista dei tornei per il filtro di esportazione
 $tournaments = get_unique_tournament_names();
 ?>
 
+<!-- Template HTML per l'interfaccia -->
 <div class="scacchitrack-import-export">
     <?php if (isset($error_message)) : ?>
         <div class="notice notice-error">
-            <p><?php echo esc_html($error_message); ?></p>
+            <p><?php echo wp_kses_post($error_message); ?></p>
         </div>
     <?php endif; ?>
     
     <?php if (isset($success_message)) : ?>
         <div class="notice notice-success">
-            <p><?php echo esc_html($success_message); ?></p>
+            <p><?php echo wp_kses_post($success_message); ?></p>
         </div>
     <?php endif; ?>
 

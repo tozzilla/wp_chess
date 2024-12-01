@@ -38,6 +38,13 @@ class ScacchiTrack_Ajax_Handler {
                 'value'   => $torneo,
                 'compare' => 'LIKE'
             );
+
+        // Se c'è un torneo, aggiungiamo l'ordinamento per round
+            $args['meta_key'] = '_round';
+            $args['orderby'] = array(
+            'meta_value_num' => 'ASC',
+            'date' => 'DESC'
+            );
         }
 
         // Filtro giocatore
@@ -102,13 +109,12 @@ class ScacchiTrack_Ajax_Handler {
                 $query->the_post();
                 
                 // Debug meta
-                $post_id = get_the_ID();
-                error_log('Post ID: ' . $post_id);
-                error_log('Meta _nome_torneo: ' . get_post_meta($post_id, '_nome_torneo', true));
-                error_log('Meta _giocatore_bianco: ' . get_post_meta($post_id, '_giocatore_bianco', true));
-                error_log('Meta _giocatore_nero: ' . get_post_meta($post_id, '_giocatore_nero', true));
-                
-                include SCACCHITRACK_DIR . 'templates/partita-item.php';
+            $post_id = get_the_ID();
+            error_log('Post ID: ' . $post_id);
+            error_log('Meta _nome_torneo: ' . get_post_meta($post_id, '_nome_torneo', true));
+            error_log('Meta _round: ' . get_post_meta($post_id, '_round', true)); // Aggiunto log per round
+            
+            include SCACCHITRACK_DIR . 'templates/partita-item.php';
             }
         } else {
             error_log('Nessun post trovato');
