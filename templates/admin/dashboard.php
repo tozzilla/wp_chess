@@ -3,17 +3,40 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Recupera le statistiche
+// Recupera le statistiche complete
+$game_stats = get_scacchitrack_statistics();
+$post_counts = wp_count_posts('scacchipartita');
+$total_games = $post_counts->publish + $post_counts->draft + $post_counts->pending;
+
 $stats = array(
-    'total_games' => wp_count_posts('scacchipartita')->publish,
+    'total_games' => $post_counts->publish,
+    'draft_games' => $post_counts->draft,
+    'pending_games' => $post_counts->pending,
+    'total_tournaments' => isset($game_stats['total_tournaments']) ? $game_stats['total_tournaments'] : 0,
+    'unique_players' => isset($game_stats['unique_players']) ? $game_stats['unique_players'] : 0,
     'recent_games' => get_posts(array(
         'post_type' => 'scacchipartita',
         'posts_per_page' => 5,
         'orderby' => 'date',
-        'order' => 'DESC'
+        'order' => 'DESC',
+        'post_status' => 'publish'
     )),
-    'tournaments' => get_unique_tournament_names()
+    'recent_tournaments' => isset($game_stats['tournament_stats']) && is_array($game_stats['tournament_stats'])
+        ? array_slice($game_stats['tournament_stats'], 0, 5)
+        : array(),
+    'top_players' => isset($game_stats['top_players']) && is_array($game_stats['top_players'])
+        ? array_slice($game_stats['top_players'], 0, 5)
+        : array()
 );
+
+// Calcola ultimo aggiornamento
+$last_game = get_posts(array(
+    'post_type' => 'scacchipartita',
+    'posts_per_page' => 1,
+    'orderby' => 'modified',
+    'order' => 'DESC'
+));
+$last_update = !empty($last_game) ? human_time_diff(strtotime($last_game[0]->post_modified), current_time('timestamp')) : 'mai';
 ?>
 
 <div class="dashboard-widgets">
@@ -23,14 +46,38 @@ $stats = array(
         <ul>
             <li>
                 <?php printf(
-                    __('Totale Partite: %d', 'scacchitrack'),
+                    __('Partite Pubblicate: %d', 'scacchitrack'),
                     $stats['total_games']
                 ); ?>
             </li>
             <li>
                 <?php printf(
+                    __('Bozze: %d', 'scacchitrack'),
+                    $stats['draft_games']
+                ); ?>
+            </li>
+            <li>
+                <?php printf(
+                    __('In Attesa: %d', 'scacchitrack'),
+                    $stats['pending_games']
+                ); ?>
+            </li>
+            <li>
+                <?php printf(
                     __('Tornei: %d', 'scacchitrack'),
-                    count($stats['tournaments'])
+                    $stats['total_tournaments']
+                ); ?>
+            </li>
+            <li>
+                <?php printf(
+                    __('Giocatori Unici: %d', 'scacchitrack'),
+                    $stats['unique_players']
+                ); ?>
+            </li>
+            <li>
+                <?php printf(
+                    __('Ultimo Aggiornamento: %s fa', 'scacchitrack'),
+                    $last_update
                 ); ?>
             </li>
         </ul>
@@ -103,5 +150,61 @@ $stats = array(
             <li><?php _e('Usa lo shortcode [scacchitrack_partite] per visualizzare la lista delle partite', 'scacchitrack'); ?></li>
             <li><?php _e('Usa lo shortcode [scacchitrack_partita id="X"] per visualizzare una singola partita', 'scacchitrack'); ?></li>
         </ol>
+    </div>
+
+    <!-- Widget Top Giocatori -->
+    <div class="dashboard-widget">
+        <h3><?php _e('Top Giocatori', 'scacchitrack'); ?></h3>
+        <?php if (!empty($stats['top_players'])) : ?>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th><?php _e('Giocatore', 'scacchitrack'); ?></th>
+                        <th><?php _e('Partite', 'scacchitrack'); ?></th>
+                        <th><?php _e('Vittorie', 'scacchitrack'); ?></th>
+                        <th><?php _e('Win %', 'scacchitrack'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($stats['top_players'] as $player) : ?>
+                        <tr>
+                            <td><?php echo esc_html($player['name']); ?></td>
+                            <td><?php echo intval($player['total']); ?></td>
+                            <td><?php echo intval($player['wins']); ?></td>
+                            <td><?php echo number_format($player['win_percentage'], 1); ?>%</td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else : ?>
+            <p><?php _e('Nessun giocatore trovato.', 'scacchitrack'); ?></p>
+        <?php endif; ?>
+    </div>
+
+    <!-- Widget Tornei Recenti -->
+    <div class="dashboard-widget">
+        <h3><?php _e('Tornei Recenti', 'scacchitrack'); ?></h3>
+        <?php if (!empty($stats['recent_tournaments'])) : ?>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th><?php _e('Torneo', 'scacchitrack'); ?></th>
+                        <th><?php _e('Partite', 'scacchitrack'); ?></th>
+                        <th><?php _e('Data', 'scacchitrack'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($stats['recent_tournaments'] as $tournament) : ?>
+                        <tr>
+                            <td><?php echo esc_html($tournament['name']); ?></td>
+                            <td><?php echo intval($tournament['total_games']); ?></td>
+                            <td><?php echo esc_html(mysql2date(get_option('date_format'), $tournament['last_game_date'])); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else : ?>
+            <p><?php _e('Nessun torneo trovato.', 'scacchitrack'); ?></p>
+        <?php endif; ?>
     </div>
 </div>

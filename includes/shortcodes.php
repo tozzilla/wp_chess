@@ -141,20 +141,30 @@ function scacchitrack_ajax_filter() {
     }
     
     if (!empty($filters['data_da']) || !empty($filters['data_a'])) {
-        $date_query = array('key' => '_data_partita');
-        
-        if (!empty($filters['data_da'])) {
+        $date_query = array(
+            'key' => '_data_partita',
+            'type' => 'DATE'
+        );
+
+        // Se abbiamo entrambe le date, usa BETWEEN
+        if (!empty($filters['data_da']) && !empty($filters['data_a'])) {
+            $date_query['value'] = array(
+                $filters['data_da'],
+                $filters['data_a']
+            );
+            $date_query['compare'] = 'BETWEEN';
+        }
+        // Se abbiamo solo data_da, usa >=
+        elseif (!empty($filters['data_da'])) {
             $date_query['value'] = $filters['data_da'];
             $date_query['compare'] = '>=';
-            $date_query['type'] = 'DATE';
         }
-        
-        if (!empty($filters['data_a'])) {
+        // Se abbiamo solo data_a, usa <=
+        elseif (!empty($filters['data_a'])) {
             $date_query['value'] = $filters['data_a'];
             $date_query['compare'] = '<=';
-            $date_query['type'] = 'DATE';
         }
-        
+
         $args['meta_query'][] = $date_query;
     }
     

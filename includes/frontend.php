@@ -9,16 +9,27 @@ if (!defined('ABSPATH')) {
 class ScacchiTrack_Frontend_Display {
     
     private $is_processing = false;
-    
+
     public function __construct() {
+        // Inizializza la sessione prima di tutto
+        add_action('init', array($this, 'init_session'), 1);
         add_filter('template_include', array($this, 'load_partita_template'));
         add_filter('the_content', array($this, 'filter_partita_content'));
         add_action('init', array($this, 'handle_login'));
         add_action('wp_logout', array($this, 'clear_scacchitrack_session'));
-        
+
         // Rimozione sidebar
         add_filter('body_class', array($this, 'manage_body_classes'));
         add_action('wp', array($this, 'remove_sidebar_areas'));
+    }
+
+    /**
+     * Inizializza la sessione
+     */
+    public function init_session() {
+        if (!session_id()) {
+            session_start();
+        }
     }
 
     /**
@@ -42,10 +53,6 @@ class ScacchiTrack_Frontend_Display {
      * Gestisce il login
      */
     public function handle_login() {
-        if (!session_id()) {
-            session_start();
-        }
-
         if (isset($_POST['scacchitrack_login_submit'])) {
             if (!wp_verify_nonce($_POST['scacchitrack_login_nonce'], 'scacchitrack_login')) {
                 wp_die('Verifica di sicurezza fallita');

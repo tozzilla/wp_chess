@@ -31,13 +31,14 @@ define('SCACCHITRACK_DIR', plugin_dir_path(__FILE__));
 define('SCACCHITRACK_URL', plugin_dir_url(__FILE__));
 
 // Caricamento dei file necessari
-require_once SCACCHITRACK_DIR . 'includes/functions.php'; 
+require_once SCACCHITRACK_DIR . 'includes/functions.php';
 require_once SCACCHITRACK_DIR . 'includes/cpt.php';
 require_once SCACCHITRACK_DIR . 'includes/metaboxes.php';
 require_once SCACCHITRACK_DIR . 'includes/shortcodes.php';
 require_once SCACCHITRACK_DIR . 'includes/admin-columns.php';
+require_once SCACCHITRACK_DIR . 'includes/admin-enhancements.php';
 require_once SCACCHITRACK_DIR . 'includes/scripts.php';
-require_once SCACCHITRACK_DIR . 'includes/frontend.php'; 
+require_once SCACCHITRACK_DIR . 'includes/frontend.php';
 require_once SCACCHITRACK_DIR . 'includes/ajax.php'; 
 
 // Attivazione del plugin

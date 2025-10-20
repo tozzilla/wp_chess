@@ -81,6 +81,30 @@ class ScacchiTrack_Assets_Manager {
             true
         );
 
+        wp_register_script(
+            'scacchitrack-evaluation',
+            SCACCHITRACK_URL . 'js/evaluation.js',
+            array('jquery'),
+            $this->version,
+            true
+        );
+
+        wp_register_script(
+            'chart-js',
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            array(),
+            '4.4.0',
+            true
+        );
+
+        wp_register_script(
+            'scacchitrack-analysis',
+            SCACCHITRACK_URL . 'js/analysis.js',
+            array('jquery', 'chart-js', 'scacchitrack-evaluation'),
+            $this->version,
+            true
+        );
+
         // Script per l'admin
         wp_register_script(
             'scacchitrack-admin',
@@ -110,6 +134,9 @@ class ScacchiTrack_Assets_Manager {
             // Script
             wp_enqueue_script('chess-js');
             wp_enqueue_script('chessboard-js');
+            wp_enqueue_script('scacchitrack-evaluation');
+            wp_enqueue_script('chart-js');
+            wp_enqueue_script('scacchitrack-analysis');
             wp_enqueue_script('scacchitrack-js');
             wp_enqueue_script('scacchitrack-filters');
 
@@ -135,6 +162,12 @@ class ScacchiTrack_Assets_Manager {
                 $pgn = get_post_meta(get_the_ID(), '_pgn', true);
             }
 
+            // Recupera le impostazioni di valutazione
+            $settings = get_option('scacchitrack_settings', array());
+            $evaluation_enabled = isset($settings['evaluation_enabled']) ? $settings['evaluation_enabled'] : false;
+            $evaluation_mode = isset($settings['evaluation_mode']) ? $settings['evaluation_mode'] : 'simple';
+            $evaluation_depth = isset($settings['evaluation_depth']) ? $settings['evaluation_depth'] : 15;
+
             // Localizzazione per JavaScript
             wp_localize_script('scacchitrack-js', 'scacchitrackData', array(
                 'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -143,6 +176,10 @@ class ScacchiTrack_Assets_Manager {
                 'filterNonce' => wp_create_nonce('scacchitrack_filter'), // nome del nonce
                 'pieces' => $chess_pieces,
                 'pgn' => $pgn,
+                'evaluationEnabled' => $evaluation_enabled,
+                'evaluationMode' => $evaluation_mode,
+                'evaluationDepth' => $evaluation_depth,
+                'stockfishUrl' => 'https://cdn.jsdelivr.net/npm/stockfish@15.0.0/src/stockfish-nnue-16.js',
                 'config' => array(
                     'showNotation' => true,
                     'draggable' => false,
@@ -189,8 +226,8 @@ class ScacchiTrack_Assets_Manager {
                 wp_enqueue_script('chessboard-js');
                 wp_enqueue_script('scacchitrack-js');
                 wp_enqueue_script('scacchitrack-admin');
-                
-                $pgn = isset($_GET['post']) ? get_post_meta($_GET['post'], '_pgn', true) : '';
+
+                $pgn = isset($_GET['post']) ? get_post_meta(absint($_GET['post']), '_pgn', true) : '';
                 
                 // Usa gli stessi pezzi del frontend
                 $chess_pieces = array(
@@ -222,32 +259,6 @@ class ScacchiTrack_Assets_Manager {
                 ));
             }
         }
-    }
-
-    /**
-     * Verifica se è necessario caricare gli asset
-     */
-    private function should_load_assets() {
-        global $post;
-
-        return (
-            is_singular('scacchipartita') ||
-            (is_a($post, 'WP_Post') && (
-                has_shortcode($post->post_content, 'scacchitrack_partite') ||
-                has_shortcode($post->post_content, 'scacchitrack_partita') ||
-                has_block('scacchitrack/partita')
-            ))
-        );
-    }
-
-    /**
-     * Aggiunge attributi async/defer agli script quando necessario
-     */
-    public function add_async_defer_attributes($tag, $handle) {
-        if ('chess-js' === $handle) {
-            return str_replace(' src', ' async src', $tag);
-        }
-        return $tag;
     }
 }
 

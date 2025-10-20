@@ -13,7 +13,15 @@
             this.playInterval = null;
             this.playSpeed = 2000;
             this.boardOrientation = 'white';
-    
+
+            // Valutazione posizione
+            this.evaluator = null;
+            this.evaluationEnabled = scacchitrackData.evaluationEnabled || false;
+            this.evaluationMode = scacchitrackData.evaluationMode || 'simple';
+
+            // Analizzatore partita
+            this.analyzer = null;
+
             // Configurazione scacchiera
             this.config = {
                 position: 'start',
@@ -36,7 +44,11 @@
         endBtn: $('#endBtn'),
         flipBtn: $('#flipBtn'),
         velocitaRange: $('#velocitaRange'),
-        togglePgnBtn: $('#togglePgn')
+        togglePgnBtn: $('#togglePgn'),
+        evaluationScore: $('#evaluation-score'),
+        evalBarWhite: $('#eval-bar-white'),
+        evalBarBlack: $('#eval-bar-black'),
+        evaluationPanel: $('.evaluation-panel')
     };
     
             this.init();
@@ -45,6 +57,19 @@
         init() {
             // Inizializza la scacchiera
             this.board = Chessboard('scacchiera', this.config);
+
+            // Inizializza il valutatore se abilitato
+            if (this.evaluationEnabled && typeof PositionEvaluator !== 'undefined') {
+                this.evaluator = new PositionEvaluator(this.evaluationMode);
+                this.elements.evaluationPanel.show();
+
+                // Inizializza l'analizzatore se disponibile
+                if (typeof GameAnalyzer !== 'undefined') {
+                    this.analyzer = new GameAnalyzer(this);
+                }
+            } else {
+                this.elements.evaluationPanel.hide();
+            }
 
             // Carica il PGN se disponibile
             if (scacchitrackData.pgn) {
@@ -56,6 +81,11 @@
 
             // Inizializza il visualizzatore PGN
             this.initPgnViewer();
+
+            // Valuta posizione iniziale
+            if (this.evaluator) {
+                this.evaluateCurrentPosition();
+            }
 
             // Responsive resize
             $(window).resize(() => {
@@ -124,7 +154,13 @@
 
             // Controllo velocità
             this.elements.velocitaRange.on('input', (e) => {
-                this.playSpeed = 3000 / parseInt(e.target.value);
+                const speed = parseInt(e.target.value);
+                // Previeni divisioni per zero o valori troppo piccoli
+                if (speed > 0) {
+                    this.playSpeed = 3000 / speed;
+                } else {
+                    this.playSpeed = 3000; // velocità di default
+                }
                 if (this.isPlaying) {
                     this.togglePlay();
                     this.togglePlay();
@@ -316,13 +352,18 @@
         updateStatus() {
             // Aggiorna il visualizzatore PGN
             this.updatePgnViewer();
-            
+
             // Aggiorna lo stato dei bottoni
             this.elements.prevBtn.prop('disabled', this.pgnIndex === 0);
             this.elements.nextBtn.prop('disabled', this.pgnIndex >= this.moves.length);
             this.elements.startBtn.prop('disabled', this.pgnIndex === 0);
             this.elements.endBtn.prop('disabled', this.pgnIndex >= this.moves.length);
-            
+
+            // Valuta la posizione corrente
+            if (this.evaluator) {
+                this.evaluateCurrentPosition();
+            }
+
             // Emetti evento personalizzato per lo stato
             $(document).trigger('scacchitrack:moveChanged', {
                 index: this.pgnIndex,
@@ -334,6 +375,44 @@
                 isStalemate: this.game.in_stalemate(),
                 isDraw: this.game.in_draw()
             });
+        }
+
+        /**
+         * Valuta la posizione corrente
+         */
+        evaluateCurrentPosition() {
+            if (!this.evaluator) return;
+
+            const fen = this.game.fen();
+            this.evaluator.evaluate(fen, (evaluation) => {
+                this.updateEvaluationDisplay(evaluation);
+            });
+        }
+
+        /**
+         * Aggiorna la visualizzazione della valutazione
+         */
+        updateEvaluationDisplay(evaluation) {
+            if (!this.elements.evaluationScore.length) return;
+
+            // Aggiorna il testo del punteggio
+            const formattedEval = this.evaluator.formatEvaluation(evaluation);
+            this.elements.evaluationScore.text(formattedEval);
+
+            // Aggiorna la barra di valutazione
+            const percentage = this.evaluator.evaluationToPercentage(evaluation);
+            this.elements.evalBarWhite.css('height', percentage + '%');
+            this.elements.evalBarBlack.css('height', (100 - percentage) + '%');
+
+            // Aggiungi classe per colorazione
+            this.elements.evaluationScore.removeClass('positive negative neutral');
+            if (evaluation > 0.5) {
+                this.elements.evaluationScore.addClass('positive');
+            } else if (evaluation < -0.5) {
+                this.elements.evaluationScore.addClass('negative');
+            } else {
+                this.elements.evaluationScore.addClass('neutral');
+            }
         }
     }
 

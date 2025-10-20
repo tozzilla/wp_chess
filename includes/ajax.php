@@ -68,28 +68,30 @@ class ScacchiTrack_Ajax_Handler {
 
         // Filtri data
         if (!empty($_POST['data_da']) || !empty($_POST['data_a'])) {
-            $data_query = array('key' => '_data_partita');
-            
-            if (!empty($_POST['data_da'])) {
+            $data_query = array(
+                'key' => '_data_partita',
+                'type' => 'DATE'
+            );
+
+            // Se abbiamo entrambe le date, usa BETWEEN
+            if (!empty($_POST['data_da']) && !empty($_POST['data_a'])) {
+                $data_query['value'] = array(
+                    sanitize_text_field($_POST['data_da']),
+                    sanitize_text_field($_POST['data_a'])
+                );
+                $data_query['compare'] = 'BETWEEN';
+            }
+            // Se abbiamo solo data_da, usa >=
+            elseif (!empty($_POST['data_da'])) {
                 $data_query['value'] = sanitize_text_field($_POST['data_da']);
                 $data_query['compare'] = '>=';
-                $data_query['type'] = 'DATE';
             }
-            
-            if (!empty($_POST['data_a'])) {
-                if (empty($_POST['data_da'])) {
-                    $data_query['value'] = sanitize_text_field($_POST['data_a']);
-                    $data_query['compare'] = '<=';
-                } else {
-                    $data_query['value'] = array(
-                        sanitize_text_field($_POST['data_da']),
-                        sanitize_text_field($_POST['data_a'])
-                    );
-                    $data_query['compare'] = 'BETWEEN';
-                }
-                $data_query['type'] = 'DATE';
+            // Se abbiamo solo data_a, usa <=
+            elseif (!empty($_POST['data_a'])) {
+                $data_query['value'] = sanitize_text_field($_POST['data_a']);
+                $data_query['compare'] = '<=';
             }
-            
+
             $args['meta_query'][] = $data_query;
         }
 
