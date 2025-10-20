@@ -13,7 +13,8 @@ if (isset($_POST['scacchitrack_import']) && isset($_FILES['pgn_file'])) {
         $error_message = __('Errore nel caricamento del file.', 'scacchitrack');
     } else {
         $importer = new ScacchiTrack_Import_Handler();
-        $result = $importer->handle_pgn_import($file['tmp_name']);
+        $skip_duplicates = isset($_POST['skip_duplicates']) && $_POST['skip_duplicates'] === '1';
+        $result = $importer->handle_pgn_import($file['tmp_name'], $skip_duplicates);
 
         if (is_wp_error($result)) {
             $error_message = $result->get_error_message();
@@ -41,7 +42,8 @@ if (isset($_POST['scacchitrack_import_paste']) && !empty($_POST['pgn_paste'])) {
     $temp_file = wp_tempnam('pgn-paste-');
     file_put_contents($temp_file, $pgn_content);
 
-    $result = $importer->handle_pgn_import($temp_file);
+    $skip_duplicates = isset($_POST['skip_duplicates_paste']) && $_POST['skip_duplicates_paste'] === '1';
+    $result = $importer->handle_pgn_import($temp_file, $skip_duplicates);
     unlink($temp_file);
 
     if (is_wp_error($result)) {
@@ -67,6 +69,7 @@ if (isset($_POST['scacchitrack_import_batch']) && !empty($_FILES['pgn_files'])) 
 
     $files = $_FILES['pgn_files'];
     $importer = new ScacchiTrack_Import_Handler();
+    $skip_duplicates = isset($_POST['skip_duplicates_batch']) && $_POST['skip_duplicates_batch'] === '1';
 
     $total_imported = 0;
     $total_games = 0;
@@ -78,7 +81,7 @@ if (isset($_POST['scacchitrack_import_batch']) && !empty($_FILES['pgn_files'])) 
             continue;
         }
 
-        $result = $importer->handle_pgn_import($files['tmp_name'][$i]);
+        $result = $importer->handle_pgn_import($files['tmp_name'][$i], $skip_duplicates);
 
         if (is_wp_error($result)) {
             $all_errors[] = sprintf(__('Errore nel file %s: %s', 'scacchitrack'), $files['name'][$i], $result->get_error_message());
@@ -134,24 +137,27 @@ if (isset($_POST['scacchitrack_export'])) {
  */
 class ScacchiTrack_Import_Handler {
     
-    public function handle_pgn_import($file_path) {
+    public function handle_pgn_import($file_path, $skip_duplicates = true) {
         if (!file_exists($file_path)) {
             return new WP_Error('file_missing', __('File PGN non trovato', 'scacchitrack'));
         }
 
         $content = file_get_contents($file_path);
-        
+
         if (!mb_check_encoding($content, 'UTF-8')) {
-            $content = mb_convert_encoding($content, 'UTF-8', mb_detect_encoding($content));
+            $detected_encoding = mb_detect_encoding($content, mb_list_encodings(), true);
+            if ($detected_encoding !== false) {
+                $content = mb_convert_encoding($content, 'UTF-8', $detected_encoding);
+            }
         }
 
         $games = $this->split_pgn_games($content);
-        
+
         $imported = 0;
         $errors = array();
 
         foreach ($games as $game) {
-            $result = $this->import_single_game($game);
+            $result = $this->import_single_game($game, $skip_duplicates);
             if (is_wp_error($result)) {
                 $errors[] = $result->get_error_message();
             } else {

@@ -90,14 +90,18 @@ class ScacchiTrack_Admin_Enhancements {
         global $wpdb;
 
         $years = $wpdb->get_col(
-            "SELECT DISTINCT YEAR(meta_value) as year
-            FROM {$wpdb->postmeta}
-            WHERE meta_key = '_data_partita'
-            AND meta_value != ''
-            ORDER BY year DESC"
+            $wpdb->prepare(
+                "SELECT DISTINCT YEAR(meta_value) as year
+                FROM {$wpdb->postmeta}
+                WHERE meta_key = %s
+                AND meta_value != ''
+                AND meta_value IS NOT NULL
+                ORDER BY year DESC",
+                '_data_partita'
+            )
         );
 
-        return $years;
+        return array_filter($years);
     }
 
     /**
@@ -106,7 +110,7 @@ class ScacchiTrack_Admin_Enhancements {
     public function filter_admin_query($query) {
         global $pagenow, $typenow;
 
-        if ($pagenow !== 'edit.php' || $typenow !== 'scacchipartita') {
+        if ($pagenow !== 'edit.php' || $typenow !== 'scacchipartita' || !$query->is_main_query()) {
             return;
         }
 

@@ -10,15 +10,19 @@ if (!defined('ABSPATH')) {
  */
 function get_unique_tournament_names() {
     global $wpdb;
-    
+
     $results = $wpdb->get_col(
-        "SELECT DISTINCT meta_value 
-        FROM {$wpdb->postmeta} 
-        WHERE meta_key = '_nome_torneo' 
-        AND meta_value != '' 
-        ORDER BY meta_value ASC"
+        $wpdb->prepare(
+            "SELECT DISTINCT meta_value
+            FROM {$wpdb->postmeta}
+            WHERE meta_key = %s
+            AND meta_value != ''
+            AND meta_value IS NOT NULL
+            ORDER BY meta_value ASC",
+            '_nome_torneo'
+        )
     );
-    
+
     return array_filter($results);
 }
 
@@ -66,28 +70,39 @@ function get_scacchitrack_statistics() {
     
     // Giocatori unici
     $white_players = $wpdb->get_col(
-        "SELECT DISTINCT meta_value 
-        FROM {$wpdb->postmeta} 
-        WHERE meta_key = '_giocatore_bianco' 
-        AND meta_value != ''"
+        $wpdb->prepare(
+            "SELECT DISTINCT meta_value
+            FROM {$wpdb->postmeta}
+            WHERE meta_key = %s
+            AND meta_value != ''
+            AND meta_value IS NOT NULL",
+            '_giocatore_bianco'
+        )
     );
-    
+
     $black_players = $wpdb->get_col(
-        "SELECT DISTINCT meta_value 
-        FROM {$wpdb->postmeta} 
-        WHERE meta_key = '_giocatore_nero' 
-        AND meta_value != ''"
+        $wpdb->prepare(
+            "SELECT DISTINCT meta_value
+            FROM {$wpdb->postmeta}
+            WHERE meta_key = %s
+            AND meta_value != ''
+            AND meta_value IS NOT NULL",
+            '_giocatore_nero'
+        )
     );
-    
+
     $unique_players = array_unique(array_merge($white_players, $black_players));
     $stats['unique_players'] = count($unique_players);
-    
+
     // Risultati
     $results = $wpdb->get_results(
-        "SELECT meta_value as risultato, COUNT(*) as count 
-        FROM {$wpdb->postmeta} 
-        WHERE meta_key = '_risultato' 
-        GROUP BY meta_value"
+        $wpdb->prepare(
+            "SELECT meta_value as risultato, COUNT(*) as count
+            FROM {$wpdb->postmeta}
+            WHERE meta_key = %s
+            GROUP BY meta_value",
+            '_risultato'
+        )
     );
     
     $total_games = 0;
@@ -159,24 +174,32 @@ function get_top_players() {
     
     // Query per le partite con il bianco
     $white_games = $wpdb->get_results(
-        "SELECT 
-            pm1.meta_value as player,
-            pm2.meta_value as result
-        FROM {$wpdb->postmeta} pm1
-        JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
-        WHERE pm1.meta_key = '_giocatore_bianco'
-        AND pm2.meta_key = '_risultato'"
+        $wpdb->prepare(
+            "SELECT
+                pm1.meta_value as player,
+                pm2.meta_value as result
+            FROM {$wpdb->postmeta} pm1
+            JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
+            WHERE pm1.meta_key = %s
+            AND pm2.meta_key = %s",
+            '_giocatore_bianco',
+            '_risultato'
+        )
     );
-    
+
     // Query per le partite con il nero
     $black_games = $wpdb->get_results(
-        "SELECT 
-            pm1.meta_value as player,
-            pm2.meta_value as result
-        FROM {$wpdb->postmeta} pm1
-        JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
-        WHERE pm1.meta_key = '_giocatore_nero'
-        AND pm2.meta_key = '_risultato'"
+        $wpdb->prepare(
+            "SELECT
+                pm1.meta_value as player,
+                pm2.meta_value as result
+            FROM {$wpdb->postmeta} pm1
+            JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
+            WHERE pm1.meta_key = %s
+            AND pm2.meta_key = %s",
+            '_giocatore_nero',
+            '_risultato'
+        )
     );
     
     // Elabora i risultati
@@ -331,11 +354,14 @@ function get_opening_statistics() {
     
     // Questa è una versione semplificata che estrae le prime mosse dal PGN
     $games = $wpdb->get_results(
-        "SELECT 
-            post_id,
-            meta_value as pgn
-        FROM {$wpdb->postmeta}
-        WHERE meta_key = '_pgn'"
+        $wpdb->prepare(
+            "SELECT
+                post_id,
+                meta_value as pgn
+            FROM {$wpdb->postmeta}
+            WHERE meta_key = %s",
+            '_pgn'
+        )
     );
     
     $openings = array();

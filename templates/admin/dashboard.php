@@ -12,8 +12,8 @@ $stats = array(
     'total_games' => $post_counts->publish,
     'draft_games' => $post_counts->draft,
     'pending_games' => $post_counts->pending,
-    'total_tournaments' => $game_stats['total_tournaments'],
-    'unique_players' => $game_stats['unique_players'],
+    'total_tournaments' => isset($game_stats['total_tournaments']) ? $game_stats['total_tournaments'] : 0,
+    'unique_players' => isset($game_stats['unique_players']) ? $game_stats['unique_players'] : 0,
     'recent_games' => get_posts(array(
         'post_type' => 'scacchipartita',
         'posts_per_page' => 5,
@@ -21,8 +21,12 @@ $stats = array(
         'order' => 'DESC',
         'post_status' => 'publish'
     )),
-    'recent_tournaments' => array_slice($game_stats['tournament_stats'], 0, 5),
-    'top_players' => array_slice($game_stats['top_players'], 0, 5)
+    'recent_tournaments' => isset($game_stats['tournament_stats']) && is_array($game_stats['tournament_stats'])
+        ? array_slice($game_stats['tournament_stats'], 0, 5)
+        : array(),
+    'top_players' => isset($game_stats['top_players']) && is_array($game_stats['top_players'])
+        ? array_slice($game_stats['top_players'], 0, 5)
+        : array()
 );
 
 // Calcola ultimo aggiornamento
