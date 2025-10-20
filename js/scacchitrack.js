@@ -19,6 +19,9 @@
             this.evaluationEnabled = scacchitrackData.evaluationEnabled || false;
             this.evaluationMode = scacchitrackData.evaluationMode || 'simple';
 
+            // Analizzatore partita
+            this.analyzer = null;
+
             // Configurazione scacchiera
             this.config = {
                 position: 'start',
@@ -59,6 +62,11 @@
             if (this.evaluationEnabled && typeof PositionEvaluator !== 'undefined') {
                 this.evaluator = new PositionEvaluator(this.evaluationMode);
                 this.elements.evaluationPanel.show();
+
+                // Inizializza l'analizzatore se disponibile
+                if (typeof GameAnalyzer !== 'undefined') {
+                    this.analyzer = new GameAnalyzer(this);
+                }
             } else {
                 this.elements.evaluationPanel.hide();
             }

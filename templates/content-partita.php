@@ -106,7 +106,57 @@ $risultato = get_post_meta($post_id, '_risultato', true);
         <div class="notazione-container">
             <h3><?php _e('Mosse', 'scacchitrack'); ?></h3>
             <div id="pgn-viewer" class="pgn-viewer"></div>
-            
+
+            <!-- Pannello Analisi -->
+            <div class="analysis-panel" style="display: none;">
+                <button class="button button-primary" id="analyze-game-btn">
+                    <span class="dashicons dashicons-chart-line"></span>
+                    <?php _e('Analizza Partita', 'scacchitrack'); ?>
+                </button>
+
+                <div id="analysis-progress" class="analysis-progress" style="display: none;">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <span class="progress-text">Analisi in corso...</span>
+                </div>
+
+                <!-- Mossa migliore -->
+                <div id="best-move-display" class="best-move-display" style="display: none;"></div>
+
+                <!-- Statistiche analisi -->
+                <div id="analysis-stats" class="analysis-stats" style="display: none;">
+                    <h4><?php _e('Statistiche Analisi', 'scacchitrack'); ?></h4>
+                    <div class="stats-grid">
+                        <div class="stat-item brilliant">
+                            <span class="stat-symbol">!!</span>
+                            <span class="stat-label"><?php _e('Brillanti', 'scacchitrack'); ?></span>
+                            <span class="stat-count" id="stat-brilliant">0</span>
+                        </div>
+                        <div class="stat-item good">
+                            <span class="stat-symbol">!</span>
+                            <span class="stat-label"><?php _e('Buone', 'scacchitrack'); ?></span>
+                            <span class="stat-count" id="stat-good">0</span>
+                        </div>
+                        <div class="stat-item inaccuracy">
+                            <span class="stat-symbol">?!</span>
+                            <span class="stat-label"><?php _e('Imprecisioni', 'scacchitrack'); ?></span>
+                            <span class="stat-count" id="stat-inaccuracy">0</span>
+                        </div>
+                        <div class="stat-item mistake">
+                            <span class="stat-symbol">?</span>
+                            <span class="stat-label"><?php _e('Errori', 'scacchitrack'); ?></span>
+                            <span class="stat-count" id="stat-mistake">0</span>
+                        </div>
+                        <div class="stat-item blunder">
+                            <span class="stat-symbol">??</span>
+                            <span class="stat-label"><?php _e('Blunder', 'scacchitrack'); ?></span>
+                            <span class="stat-count" id="stat-blunder">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="pgn-raw-container">
                 <button class="button toggle-pgn" id="togglePgn">
                     <?php _e('Mostra PGN', 'scacchitrack'); ?>
@@ -116,6 +166,17 @@ $risultato = get_post_meta($post_id, '_risultato', true);
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Grafico Valutazione -->
+    <div id="evaluation-graph" class="evaluation-graph-container" style="display: none;">
+        <h3><?php _e('Andamento Valutazione', 'scacchitrack'); ?></h3>
+        <div class="graph-wrapper">
+            <canvas id="eval-chart"></canvas>
+        </div>
+        <p class="graph-legend">
+            <?php _e('Clicca su un punto per saltare a quella mossa', 'scacchitrack'); ?>
+        </p>
     </div>
 
     <!-- Contenuto addizionale della partita -->
@@ -138,6 +199,26 @@ $risultato = get_post_meta($post_id, '_risultato', true);
         giocatoreNero: <?php echo json_encode($giocatore_nero); ?>,
         risultato: <?php echo json_encode($risultato); ?>
     };
+
+    // Mostra il pannello di analisi se la valutazione è abilitata
+    jQuery(document).ready(function($) {
+        if (typeof scacchitrackData !== 'undefined' && scacchitrackData.evaluationEnabled) {
+            $('.analysis-panel').show();
+        }
+
+        // Quando l'analisi è completata, mostra le statistiche
+        $(document).on('scacchitrack:analysisComplete', function(e, analyzer) {
+            const stats = analyzer.getAnalysisStats();
+            if (stats) {
+                $('#stat-brilliant').text(stats.brilliant);
+                $('#stat-good').text(stats.good);
+                $('#stat-inaccuracy').text(stats.inaccuracies);
+                $('#stat-mistake').text(stats.mistakes);
+                $('#stat-blunder').text(stats.blunders);
+                $('#analysis-stats').show();
+            }
+        });
+    });
 </script>
 
 <style>

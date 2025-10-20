@@ -89,6 +89,22 @@ class ScacchiTrack_Assets_Manager {
             true
         );
 
+        wp_register_script(
+            'chart-js',
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            array(),
+            '4.4.0',
+            true
+        );
+
+        wp_register_script(
+            'scacchitrack-analysis',
+            SCACCHITRACK_URL . 'js/analysis.js',
+            array('jquery', 'chart-js', 'scacchitrack-evaluation'),
+            $this->version,
+            true
+        );
+
         // Script per l'admin
         wp_register_script(
             'scacchitrack-admin',
@@ -119,6 +135,8 @@ class ScacchiTrack_Assets_Manager {
             wp_enqueue_script('chess-js');
             wp_enqueue_script('chessboard-js');
             wp_enqueue_script('scacchitrack-evaluation');
+            wp_enqueue_script('chart-js');
+            wp_enqueue_script('scacchitrack-analysis');
             wp_enqueue_script('scacchitrack-js');
             wp_enqueue_script('scacchitrack-filters');
 
