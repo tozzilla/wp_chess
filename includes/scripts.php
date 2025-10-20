@@ -189,8 +189,8 @@ class ScacchiTrack_Assets_Manager {
                 wp_enqueue_script('chessboard-js');
                 wp_enqueue_script('scacchitrack-js');
                 wp_enqueue_script('scacchitrack-admin');
-                
-                $pgn = isset($_GET['post']) ? get_post_meta($_GET['post'], '_pgn', true) : '';
+
+                $pgn = isset($_GET['post']) ? get_post_meta(absint($_GET['post']), '_pgn', true) : '';
                 
                 // Usa gli stessi pezzi del frontend
                 $chess_pieces = array(
@@ -222,32 +222,6 @@ class ScacchiTrack_Assets_Manager {
                 ));
             }
         }
-    }
-
-    /**
-     * Verifica se è necessario caricare gli asset
-     */
-    private function should_load_assets() {
-        global $post;
-
-        return (
-            is_singular('scacchipartita') ||
-            (is_a($post, 'WP_Post') && (
-                has_shortcode($post->post_content, 'scacchitrack_partite') ||
-                has_shortcode($post->post_content, 'scacchitrack_partita') ||
-                has_block('scacchitrack/partita')
-            ))
-        );
-    }
-
-    /**
-     * Aggiunge attributi async/defer agli script quando necessario
-     */
-    public function add_async_defer_attributes($tag, $handle) {
-        if ('chess-js' === $handle) {
-            return str_replace(' src', ' async src', $tag);
-        }
-        return $tag;
     }
 }
 

@@ -122,16 +122,18 @@ function get_scacchitrack_statistics() {
     }
     
     // Timeline data
-    $timeline = $wpdb->get_results(
-        "SELECT 
-            DATE_FORMAT(meta_value, '%Y-%m') as month,
+    $timeline = $wpdb->get_results($wpdb->prepare(
+        "SELECT
+            DATE_FORMAT(meta_value, '%%Y-%%m') as month,
             COUNT(*) as count
         FROM {$wpdb->postmeta}
-        WHERE meta_key = '_data_partita'
+        WHERE meta_key = %s
         GROUP BY month
         ORDER BY month ASC
-        LIMIT 12"
-    );
+        LIMIT %d",
+        '_data_partita',
+        12
+    ));
     
     $stats['timeline_labels'] = array_column($timeline, 'month');
     $stats['timeline_data'] = array_column($timeline, 'count');
@@ -300,11 +302,18 @@ function get_tournament_statistics() {
             
             $tournament_stats['players'] = count(array_unique($tournament_stats['players']));
             $total = $tournament_stats['total_games'];
-            
-            $tournament_stats['white_wins_percentage'] = ($tournament_stats['white_wins'] / $total) * 100;
-            $tournament_stats['black_wins_percentage'] = ($tournament_stats['black_wins'] / $total) * 100;
-            $tournament_stats['draws_percentage'] = ($tournament_stats['draws'] / $total) * 100;
-            
+
+            // Calcola le percentuali solo se ci sono partite
+            if ($total > 0) {
+                $tournament_stats['white_wins_percentage'] = ($tournament_stats['white_wins'] / $total) * 100;
+                $tournament_stats['black_wins_percentage'] = ($tournament_stats['black_wins'] / $total) * 100;
+                $tournament_stats['draws_percentage'] = ($tournament_stats['draws'] / $total) * 100;
+            } else {
+                $tournament_stats['white_wins_percentage'] = 0;
+                $tournament_stats['black_wins_percentage'] = 0;
+                $tournament_stats['draws_percentage'] = 0;
+            }
+
             $stats[] = $tournament_stats;
         }
     }

@@ -124,7 +124,13 @@
 
             // Controllo velocità
             this.elements.velocitaRange.on('input', (e) => {
-                this.playSpeed = 3000 / parseInt(e.target.value);
+                const speed = parseInt(e.target.value);
+                // Previeni divisioni per zero o valori troppo piccoli
+                if (speed > 0) {
+                    this.playSpeed = 3000 / speed;
+                } else {
+                    this.playSpeed = 3000; // velocità di default
+                }
                 if (this.isPlaying) {
                     this.togglePlay();
                     this.togglePlay();

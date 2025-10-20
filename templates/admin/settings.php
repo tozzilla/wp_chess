@@ -3,27 +3,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Salva le impostazioni
-if (isset($_POST['scacchitrack_save_settings'])) {
-    check_admin_referer('scacchitrack_settings');
-    
-    $settings = array(
-        'partite_per_pagina' => absint($_POST['partite_per_pagina']),
-        'tema_scacchiera' => sanitize_text_field($_POST['tema_scacchiera']),
-        'animazioni' => isset($_POST['animazioni']),
-        'notazione_algebrica' => isset($_POST['notazione_algebrica']),
-        'commenti_abilitati' => isset($_POST['commenti_abilitati'])
-    );
-    
-    update_option('scacchitrack_settings', $settings);
-    add_settings_error(
-        'scacchitrack_messages',
-        'scacchitrack_message',
-        __('Impostazioni salvate con successo.', 'scacchitrack'),
-        'updated'
-    );
-}
-
 // Recupera le impostazioni correnti
 $settings = get_option('scacchitrack_settings', array(
     'partite_per_pagina' => 10,
@@ -36,7 +15,7 @@ $settings = get_option('scacchitrack_settings', array(
 // Gestione del salvataggio delle impostazioni
 if (isset($_POST['scacchitrack_save_settings'])) {
     check_admin_referer('scacchitrack_settings');
-    
+
     // Salva le impostazioni esistenti
     $settings = array(
         'partite_per_pagina' => absint($_POST['partite_per_pagina']),
@@ -46,14 +25,14 @@ if (isset($_POST['scacchitrack_save_settings'])) {
         'commenti_abilitati' => isset($_POST['commenti_abilitati'])
     );
     update_option('scacchitrack_settings', $settings);
-    
+
     // Salva le nuove impostazioni di protezione
     update_option('scacchitrack_password_protection', isset($_POST['password_protection']));
-    
+
     if (isset($_POST['access_password']) && !empty($_POST['access_password'])) {
         update_option('scacchitrack_access_password', wp_hash_password($_POST['access_password']));
     }
-    
+
     add_settings_error(
         'scacchitrack_messages',
         'scacchitrack_message',
@@ -162,13 +141,20 @@ if (isset($_POST['scacchitrack_save_settings'])) {
             </label>
         </th>
         <td>
-            <input type="password" 
-                   id="access_password" 
-                   name="access_password" 
-                   value="<?php echo esc_attr(get_option('scacchitrack_access_password')); ?>" 
-                   class="regular-text">
+            <input type="password"
+                   id="access_password"
+                   name="access_password"
+                   value=""
+                   class="regular-text"
+                   placeholder="<?php echo get_option('scacchitrack_access_password') ? esc_attr__('Inserisci nuova password per cambiarla', 'scacchitrack') : esc_attr__('Inserisci password', 'scacchitrack'); ?>">
             <p class="description">
-                <?php _e('Imposta la password per accedere alla lista delle partite.', 'scacchitrack'); ?>
+                <?php
+                if (get_option('scacchitrack_access_password')) {
+                    _e('Lascia vuoto per mantenere la password attuale. Inserisci una nuova password per cambiarla.', 'scacchitrack');
+                } else {
+                    _e('Imposta la password per accedere alla lista delle partite.', 'scacchitrack');
+                }
+                ?>
             </p>
         </td>
     </tr>
