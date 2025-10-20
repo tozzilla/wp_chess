@@ -131,3 +131,105 @@
 .move-highlight {
     animation: moveHighlight 1s ease-out;
 }
+
+/* Pannello di valutazione */
+.evaluation-panel {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.evaluation-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.eval-bar-container {
+    width: 30px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.eval-bar-black {
+    background: linear-gradient(180deg, #2c2c2c 0%, #1a1a1a 100%);
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.eval-bar-white {
+    background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 100%);
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.eval-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.eval-score-wrapper {
+    background: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.eval-score {
+    font-size: 28px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    display: inline-block;
+    min-width: 80px;
+    transition: color 0.3s ease;
+}
+
+.eval-score.positive {
+    color: #2E7D32;
+}
+
+.eval-score.negative {
+    color: #C62828;
+}
+
+.eval-score.neutral {
+    color: #666;
+}
+
+.eval-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+/* Responsive per la valutazione */
+@media (max-width: 600px) {
+    .evaluation-container {
+        flex-direction: row;
+        gap: 15px;
+    }
+
+    .eval-bar-container {
+        width: 25px;
+        height: 150px;
+    }
+
+    .eval-score {
+        font-size: 24px;
+        min-width: 70px;
+    }
+}

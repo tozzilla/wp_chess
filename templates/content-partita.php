@@ -54,7 +54,25 @@ $risultato = get_post_meta($post_id, '_risultato', true);
         <div class="scacchiera-wrapper">
             <!-- Scacchiera -->
             <div id="scacchiera" class="scacchiera"></div>
-            
+
+            <!-- Pannello di valutazione -->
+            <div class="evaluation-panel" style="display: none;">
+                <div class="evaluation-container">
+                    <div class="eval-bar-container">
+                        <div class="eval-bar-black" id="eval-bar-black"></div>
+                        <div class="eval-bar-white" id="eval-bar-white"></div>
+                    </div>
+                    <div class="eval-info">
+                        <div class="eval-score-wrapper">
+                            <span class="eval-score" id="evaluation-score">0.00</span>
+                        </div>
+                        <div class="eval-label">
+                            <?php _e('Valutazione', 'scacchitrack'); ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Controlli della scacchiera -->
             <div class="scacchiera-controlli">
                 <button class="button control-button" id="startBtn" title="<?php esc_attr_e('Vai all\'inizio', 'scacchitrack'); ?>">

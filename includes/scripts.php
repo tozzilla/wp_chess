@@ -81,6 +81,14 @@ class ScacchiTrack_Assets_Manager {
             true
         );
 
+        wp_register_script(
+            'scacchitrack-evaluation',
+            SCACCHITRACK_URL . 'js/evaluation.js',
+            array('jquery'),
+            $this->version,
+            true
+        );
+
         // Script per l'admin
         wp_register_script(
             'scacchitrack-admin',
@@ -110,6 +118,7 @@ class ScacchiTrack_Assets_Manager {
             // Script
             wp_enqueue_script('chess-js');
             wp_enqueue_script('chessboard-js');
+            wp_enqueue_script('scacchitrack-evaluation');
             wp_enqueue_script('scacchitrack-js');
             wp_enqueue_script('scacchitrack-filters');
 
@@ -135,6 +144,12 @@ class ScacchiTrack_Assets_Manager {
                 $pgn = get_post_meta(get_the_ID(), '_pgn', true);
             }
 
+            // Recupera le impostazioni di valutazione
+            $settings = get_option('scacchitrack_settings', array());
+            $evaluation_enabled = isset($settings['evaluation_enabled']) ? $settings['evaluation_enabled'] : false;
+            $evaluation_mode = isset($settings['evaluation_mode']) ? $settings['evaluation_mode'] : 'simple';
+            $evaluation_depth = isset($settings['evaluation_depth']) ? $settings['evaluation_depth'] : 15;
+
             // Localizzazione per JavaScript
             wp_localize_script('scacchitrack-js', 'scacchitrackData', array(
                 'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -143,6 +158,10 @@ class ScacchiTrack_Assets_Manager {
                 'filterNonce' => wp_create_nonce('scacchitrack_filter'), // nome del nonce
                 'pieces' => $chess_pieces,
                 'pgn' => $pgn,
+                'evaluationEnabled' => $evaluation_enabled,
+                'evaluationMode' => $evaluation_mode,
+                'evaluationDepth' => $evaluation_depth,
+                'stockfishUrl' => 'https://cdn.jsdelivr.net/npm/stockfish@15.0.0/src/stockfish-nnue-16.js',
                 'config' => array(
                     'showNotation' => true,
                     'draggable' => false,

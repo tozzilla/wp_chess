@@ -9,7 +9,10 @@ $settings = get_option('scacchitrack_settings', array(
     'tema_scacchiera' => 'default',
     'animazioni' => true,
     'notazione_algebrica' => true,
-    'commenti_abilitati' => true
+    'commenti_abilitati' => true,
+    'evaluation_enabled' => false,
+    'evaluation_mode' => 'simple',
+    'evaluation_depth' => 15
 ));
 
 // Gestione del salvataggio delle impostazioni
@@ -22,7 +25,10 @@ if (isset($_POST['scacchitrack_save_settings'])) {
         'tema_scacchiera' => sanitize_text_field($_POST['tema_scacchiera']),
         'animazioni' => isset($_POST['animazioni']),
         'notazione_algebrica' => isset($_POST['notazione_algebrica']),
-        'commenti_abilitati' => isset($_POST['commenti_abilitati'])
+        'commenti_abilitati' => isset($_POST['commenti_abilitati']),
+        'evaluation_enabled' => isset($_POST['evaluation_enabled']),
+        'evaluation_mode' => sanitize_text_field($_POST['evaluation_mode']),
+        'evaluation_depth' => absint($_POST['evaluation_depth'])
     );
     update_option('scacchitrack_settings', $settings);
 
@@ -119,6 +125,65 @@ if (isset($_POST['scacchitrack_save_settings'])) {
             </tr>
 
             <tr>
+                <th scope="row"><?php _e('Valutazione Posizione', 'scacchitrack'); ?></th>
+                <td>
+                    <fieldset>
+                        <label for="evaluation_enabled">
+                            <input type="checkbox"
+                                   id="evaluation_enabled"
+                                   name="evaluation_enabled"
+                                   <?php checked($settings['evaluation_enabled']); ?>>
+                            <?php _e('Abilita valutazione della posizione', 'scacchitrack'); ?>
+                        </label>
+                        <p class="description">
+                            <?php _e('Mostra una barra di valutazione che indica il vantaggio di bianco o nero durante la riproduzione delle partite.', 'scacchitrack'); ?>
+                        </p>
+                    </fieldset>
+                </td>
+            </tr>
+
+            <tr class="evaluation-settings" style="display: <?php echo $settings['evaluation_enabled'] ? 'table-row' : 'none'; ?>;">
+                <th scope="row">
+                    <label for="evaluation_mode">
+                        <?php _e('Modalità di Valutazione', 'scacchitrack'); ?>
+                    </label>
+                </th>
+                <td>
+                    <select id="evaluation_mode" name="evaluation_mode">
+                        <option value="simple" <?php selected($settings['evaluation_mode'], 'simple'); ?>>
+                            <?php _e('Semplice (Materiale)', 'scacchitrack'); ?>
+                        </option>
+                        <option value="advanced" <?php selected($settings['evaluation_mode'], 'advanced'); ?>>
+                            <?php _e('Avanzata (Stockfish - Richiede più risorse)', 'scacchitrack'); ?>
+                        </option>
+                    </select>
+                    <p class="description">
+                        <?php _e('Semplice: valutazione rapida basata sul materiale e posizione. Avanzata: usa il motore Stockfish per valutazioni più accurate (può rallentare su dispositivi meno potenti).', 'scacchitrack'); ?>
+                    </p>
+                </td>
+            </tr>
+
+            <tr class="evaluation-settings evaluation-depth-settings" style="display: <?php echo ($settings['evaluation_enabled'] && $settings['evaluation_mode'] === 'advanced') ? 'table-row' : 'none'; ?>;">
+                <th scope="row">
+                    <label for="evaluation_depth">
+                        <?php _e('Profondità Analisi', 'scacchitrack'); ?>
+                    </label>
+                </th>
+                <td>
+                    <input type="number"
+                           id="evaluation_depth"
+                           name="evaluation_depth"
+                           value="<?php echo esc_attr($settings['evaluation_depth']); ?>"
+                           min="5"
+                           max="20"
+                           class="small-text">
+                    <p class="description">
+                        <?php _e('Profondità di analisi di Stockfish (5-20). Valori più alti danno valutazioni più precise ma richiedono più tempo. Consigliato: 15.', 'scacchitrack'); ?>
+                    </p>
+                </td>
+            </tr>
+
+            <tr>
         <th scope="row"><?php _e('Protezione Contenuti', 'scacchitrack'); ?></th>
         <td>
             <fieldset>
@@ -179,5 +244,28 @@ jQuery(document).ready(function($) {
             $('.password-settings').hide();
         }
     });
+
+    // Mostra/nascondi i campi di valutazione
+    $('#evaluation_enabled').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('.evaluation-settings').show();
+            updateDepthVisibility();
+        } else {
+            $('.evaluation-settings').hide();
+        }
+    });
+
+    // Mostra/nascondi il campo profondità in base alla modalità
+    $('#evaluation_mode').on('change', function() {
+        updateDepthVisibility();
+    });
+
+    function updateDepthVisibility() {
+        if ($('#evaluation_enabled').is(':checked') && $('#evaluation_mode').val() === 'advanced') {
+            $('.evaluation-depth-settings').show();
+        } else {
+            $('.evaluation-depth-settings').hide();
+        }
+    }
 });
 </script>
