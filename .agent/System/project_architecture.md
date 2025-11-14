@@ -259,7 +259,42 @@ wp_chess/
 - Visibilità condizionale basata su capabilities
 - Integrazione con sistema utenti WordPress
 
-### 6. CMS Enhancements (Pacchetto B)
+### 6. Gestione Tornei
+
+**Interface**: Tab "Tornei" nella pagina admin principale
+
+**Funzionalità**:
+
+*Lista Tornei*:
+- Visualizzazione tabella con nome torneo e conteggio partite
+- Recupero automatico tornei unici dal database
+- Stile WordPress standard (wp-list-table)
+
+*Rinomina Torneo*:
+- Modal interattivo per rinomina
+- Aggiornamento automatico di tutte le partite associate
+- Query diretta `wp_postmeta` per performance
+- Validazione e sanitizzazione input
+
+*Elimina Torneo*:
+- Modal con conferma esplicita
+- Eliminazione torneo + tutte le partite associate
+- Pulizia metadata orfani
+- Report numero partite eliminate
+
+*Statistiche Tornei*:
+- Per ogni torneo: partite, giocatori unici, risultati
+- Percentuali vittorie bianco/nero/patte
+- Integrato in dashboard e tab statistiche
+
+**Sicurezza**:
+- Nonce verification per azioni
+- Capability checks impliciti (menu admin)
+- Sanitizzazione nomi tornei
+
+**File**: `templates/admin/tournaments.php` (245 righe)
+
+### 7. CMS Enhancements (Pacchetto B)
 
 **Admin Filters**:
 - Filtro per Torneo

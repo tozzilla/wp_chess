@@ -57,12 +57,13 @@ Testing completo di ScacchiTrack v0.9e completato tramite analisi statica del co
 - Game Analysis (13 test)
 - AJAX e Filtri (12 test)
 - Admin Enhancements (12 test)
+- Tournament Management (12 test)
 - Statistics (10 test)
 - Security (10 test)
 - Performance (10 test)
 - Compatibility (12 test)
 
-**Totale Test Cases**: 147 test definiti
+**Totale Test Cases**: 159 test definiti
 
 **Piano Completo**: [testing_plan_v1.0.md](./testing_plan_v1.0.md)
 

@@ -28,6 +28,8 @@ Testing completo e sistematico di tutte le funzionalità di ScacchiTrack prima d
 
 ## Test Suite
 
+**Totale Test Cases**: 159 test definiti in 16 categorie
+
 ### 1. Activation/Deactivation
 
 **Obiettivo**: Verificare corretto setup/teardown del plugin
@@ -210,7 +212,26 @@ Testing completo e sistematico di tutte le funzionalità di ScacchiTrack prima d
 | ADM-011 | Duplica esecuzione | Click Duplica | - Nuova partita creata<br>- Tutti metadata copiati<br>- Titolo modificato | ⬜ |
 | ADM-012 | Admin columns custom | Verifica colonne | - Colonne custom visibili<br>- Dati corretti | ⬜ |
 
-### 12. Statistics & Dashboard
+### 12. Tournament Management
+
+**Obiettivo**: Testare gestione tornei
+
+| Test ID | Descrizione | Steps | Expected Result | Status |
+|---------|-------------|-------|-----------------|--------|
+| TOUR-001 | Visualizza lista tornei | ScacchiTrack > Tornei | - Lista tornei visibile<br>- Nome e count partite corretti | ⬜ |
+| TOUR-002 | Conteggio partite | Verifica count per torneo | - Numero partite accurato | ⬜ |
+| TOUR-003 | Nessun torneo | DB senza tornei | - Messaggio "Nessun torneo trovato" | ⬜ |
+| TOUR-004 | Modal rinomina | Click "Rinomina" | - Modal appare<br>- Nome attuale pre-compilato | ⬜ |
+| TOUR-005 | Rinomina torneo | 1. Rinomina torneo<br>2. Salva | - Torneo rinominato<br>- Tutte partite aggiornate<br>- Messaggio successo | ⬜ |
+| TOUR-006 | Verifica rinomina DB | Dopo rinomina, check DB | - Tutti meta_value aggiornati | ⬜ |
+| TOUR-007 | Modal elimina | Click "Elimina" | - Modal conferma appare<br>- Warning chiaro | ⬜ |
+| TOUR-008 | Elimina torneo | 1. Conferma eliminazione<br>2. Verifica | - Torneo eliminato<br>- Partite eliminate<br>- Report con count | ⬜ |
+| TOUR-009 | Nonce verification | POST senza nonce | - Azione bloccata | ⬜ |
+| TOUR-010 | Chiusura modal | Click fuori modal | - Modal si chiude | ⬜ |
+| TOUR-011 | Chiusura modal | Click "Annulla" | - Modal si chiude<br>- Nessuna modifica | ⬜ |
+| TOUR-012 | Statistiche torneo | Verifica stats tab | - Stats per torneo visibili<br>- Dati accurati | ⬜ |
+
+### 13. Statistics & Dashboard
 
 **Obiettivo**: Testare dashboard e statistiche
 
